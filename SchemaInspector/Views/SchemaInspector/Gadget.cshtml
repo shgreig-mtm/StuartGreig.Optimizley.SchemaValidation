@@ -1,0 +1,101 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Schema Inspector</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #0078d4;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background: #106ebe;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Schema Inspector</h1>
+        <p>The Schema Inspector helps you view and validate JSON-LD structured data for your Optimizely content.</p>
+        
+        <div class="info-box">
+            <strong>✨ Features:</strong>
+            <ul>
+                <li>Real-time JSON syntax validation</li>
+                <li>Schema.org compliance checking</li>
+                <li>SEO recommendations</li>
+                <li>Google Rich Results testing</li>
+            </ul>
+        </div>
+
+        <p><strong>How to use:</strong></p>
+        <ol>
+            <li>Navigate to any page in the CMS</li>
+            <li>Open the page in edit mode</li>
+            <li>Click the inspector icon or menu item</li>
+            <li>View the validation results</li>
+        </ol>
+
+        <p>Or test directly with a content ID:</p>
+        <input type="text" id="contentId" placeholder="Enter Content ID (e.g., 6)" 
+               style="padding: 8px; width: 200px; border: 1px solid #ddd; border-radius: 4px;">
+        <button onclick="inspect()" class="btn" style="display: inline-block; margin-left: 10px; border: none; cursor: pointer;">
+            Inspect
+        </button>
+
+        <script>
+            function inspect() {
+                const id = document.getElementById('contentId').value;
+                if (id) {
+                    window.open(`/modules/my-schema-plugin/schemainspector/inspector/${id}`, '_blank');
+                } else {
+                    alert('Please enter a content ID');
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>

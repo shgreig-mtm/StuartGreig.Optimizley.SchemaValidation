@@ -1,0 +1,201 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Schema Inspector - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .section h2 {
+            color: #667eea;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .bookmarklet {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #764ba2;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: move;
+            transition: all 0.3s;
+        }
+        .bookmarklet:hover {
+            background: #6a4091;
+            transform: scale(1.05);
+        }
+        code {
+            background: #e8eaf6;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            color: #5f6368;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📊 Schema Inspector</h1>
+            <p class="subtitle">Validate JSON-LD structured data for your Optimizely content</p>
+
+            <div class="section">
+                <h2>🚀 Quick Access</h2>
+                <p style="margin-bottom: 15px;">Enter a content ID to inspect its schema:</p>
+                <div class="input-group">
+                    <input type="text" id="contentId" placeholder="Content ID (e.g., 6)">
+                    <button onclick="inspect()" class="btn">Inspect Schema</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔖 Bookmarklet (Drag to Bookmarks Bar)</h2>
+                <p style="margin-bottom: 15px;">Drag this button to your bookmarks bar for quick access while editing:</p>
+                <a href="javascript:(function(){var currentUrl=window.location.href;var contentMatch=currentUrl.match(/contentLink=([0-9_]+)/)||currentUrl.match(/\/([0-9]+)\/edit/);if(contentMatch){var contentId=contentMatch[1].replace(/_/g,'');window.open('/modules/my-schema-plugin/schemainspector/inspector/'+contentId,'_blank','width=1200,height=800');}else{var id=prompt('Enter Content ID:');if(id)window.open('/modules/my-schema-plugin/schemainspector/inspector/'+id,'_blank','width=1200,height=800');}})();" 
+                   class="bookmarklet" 
+                   onclick="alert('Drag this to your bookmarks bar instead of clicking!'); return false;">
+                    ⚡ Schema Inspector
+                </a>
+                <div class="note" style="margin-top: 15px;">
+                    <strong>How to use:</strong> Drag the button above to your browser's bookmarks bar. When editing a page in Optimizely, click the bookmarklet to inspect its schema.
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>✨ Features</h2>
+                <ul>
+                    <li>Real-time JSON syntax validation</li>
+                    <li>Schema.org structure compliance checking</li>
+                    <li>Type-specific required properties validation</li>
+                    <li>SEO recommendations and warnings</li>
+                    <li>Copy to clipboard</li>
+                    <li>Test with Google Rich Results Tool</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>📖 Direct Access</h2>
+                <p>You can also access the inspector directly via URL:</p>
+                <code style="display: block; margin-top: 10px; padding: 10px;">/modules/my-schema-plugin/schemainspector/inspector/{contentId}</code>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function inspect() {
+            const id = document.getElementById('contentId').value.trim();
+            if (id) {
+                window.open(`/modules/my-schema-plugin/schemainspector/inspector/${id}`, '_blank', 'width=1200,height=800');
+            } else {
+                alert('Please enter a content ID');
+            }
+        }
+        
+        // Allow Enter key to trigger inspection
+        document.getElementById('contentId').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                inspect();
+            }
+        });
+    </script>
+</body>
+</html>

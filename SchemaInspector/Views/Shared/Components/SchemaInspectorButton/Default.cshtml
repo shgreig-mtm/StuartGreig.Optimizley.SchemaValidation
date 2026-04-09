@@ -1,0 +1,208 @@
+<script>
+(function() {
+    'use strict';
+    
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSchemaInspector);
+    } else {
+        initSchemaInspector();
+    }
+    
+    function initSchemaInspector() {
+        // Don't add if already exists
+        if (document.querySelector('.schema-inspector-fab')) {
+            return;
+        }
+        
+        // Add styles
+        var style = document.createElement('style');
+        style.textContent = `
+            .schema-inspector-fab {
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                cursor: pointer;
+                font-size: 28px;
+                z-index: 999999;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: Arial, sans-serif;
+            }
+            .schema-inspector-fab:hover {
+                transform: scale(1.15);
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            }
+            .schema-inspector-fab:active {
+                transform: scale(1.05);
+            }
+            .schema-inspector-tooltip {
+                position: absolute;
+                right: 75px;
+                background: #333;
+                color: white;
+                padding: 10px 15px;
+                border-radius: 4px;
+                white-space: nowrap;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            .schema-inspector-tooltip::after {
+                content: '';
+                position: absolute;
+                right: -5px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 0;
+                height: 0;
+                border-left: 5px solid #333;
+                border-top: 5px solid transparent;
+                border-bottom: 5px solid transparent;
+            }
+            .schema-inspector-fab:hover .schema-inspector-tooltip {
+                opacity: 1;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Create button
+        var button = document.createElement('button');
+        button.className = 'schema-inspector-fab';
+        button.innerHTML = '📊<span class="schema-inspector-tooltip">Schema Inspector</span>';
+        button.title = 'Inspect Schema.org markup';
+        button.setAttribute('aria-label', 'Open Schema Inspector');
+        
+        button.onclick = function() {
+            openSchemaInspector();
+        };
+        
+        document.body.appendChild(button);
+        console.log('✅ Schema Inspector button added');
+    }
+    
+    function openSchemaInspector() {
+        // Try multiple patterns to extract content ID
+        var contentId = getContentId();
+        
+        if (contentId) {
+            var url = '/modules/my-schema-plugin/schemainspector/inspector/' + contentId;
+            var popup = window.open(url, 'SchemaInspector', 'width=1200,height=900,scrollbars=yes,resizable=yes');
+            
+            if (!popup) {
+                alert('Please allow popups for this site to use Schema Inspector');
+            }
+        } else {
+            // Fallback: ask user for content ID
+            var id = prompt('Enter Content ID to inspect:');
+            if (id) {
+                window.open('/modules/my-schema-plugin/schemainspector/inspector/' + id, 
+                           'SchemaInspector', 
+                           'width=1200,height=900,scrollbars=yes,resizable=yes');
+            }
+        }
+    }
+    
+    function getContentId() {
+        var url = window.location.href;
+        console.log('🔍 Schema Inspector - Detecting content ID from URL:', url);
+
+        // Try to get from EPiServer context first
+        if (window.epi && window.epi.beta && window.epi.beta.contextService) {
+            var context = window.epi.beta.contextService.currentContext;
+            if (context && context.id) {
+                console.log('✅ Found content ID from epi.beta.contextService:', context.id);
+                return context.id.toString();
+            }
+        }
+
+        // Try epi context (CMS 12+)
+        if (window.epi && window.epi.getCurrentContext) {
+            try {
+                var ctx = window.epi.getCurrentContext();
+                if (ctx && ctx.id) {
+                    console.log('✅ Found content ID from epi.getCurrentContext:', ctx.id);
+                    return ctx.id.toString();
+                }
+            } catch (e) {
+                console.log('⚠️ Could not get context from epi.getCurrentContext');
+            }
+        }
+
+        // Pattern 1: contentLink=123_456 or contentLink=123
+        var match = url.match(/contentLink=([0-9_]+)/);
+        if (match) {
+            var id = match[1].replace(/_/g, '');
+            console.log('✅ Found content ID from contentLink parameter:', id);
+            return id;
+        }
+
+        // Pattern 2: /123/edit or /123/
+        match = url.match(/\/([0-9]+)\/(?:edit|preview|$)/);
+        if (match) {
+            console.log('✅ Found content ID from path:', match[1]);
+            return match[1];
+        }
+
+        // Pattern 3: content reference in hash
+        match = url.match(/#.*?([0-9]+)/);
+        if (match) {
+            console.log('✅ Found content ID from hash:', match[1]);
+            return match[1];
+        }
+
+        // Pattern 4: epi.cms.contentdata:/// format
+        match = url.match(/contentdata:\/\/\/([0-9]+)/);
+        if (match) {
+            console.log('✅ Found content ID from contentdata URI:', match[1]);
+            return match[1];
+        }
+
+        // Pattern 5: EPiServer CMS URL structure /EPiServer/CMS/Content/...
+        match = url.match(/\/EPiServer\/CMS\/.*?([0-9]+)/);
+        if (match) {
+            console.log('✅ Found content ID from EPiServer path:', match[1]);
+            return match[1];
+        }
+
+        // Try to extract from page data attributes
+        var editableElements = document.querySelectorAll('[data-epi-content-link]');
+        if (editableElements.length > 0) {
+            var contentLink = editableElements[0].getAttribute('data-epi-content-link');
+            if (contentLink) {
+                match = contentLink.match(/([0-9]+)/);
+                if (match) {
+                    console.log('✅ Found content ID from data-epi-content-link:', match[1]);
+                    return match[1];
+                }
+            }
+        }
+
+        console.warn('❌ Could not detect content ID from any source');
+        console.log('URL:', url);
+        console.log('Available epi object:', window.epi ? 'yes' : 'no');
+
+        return null;
+    }
+    
+    // Add keyboard shortcut: Alt+S
+    document.addEventListener('keydown', function(e) {
+        if (e.altKey && e.key === 's') {
+            e.preventDefault();
+            openSchemaInspector();
+        }
+    });
+    
+})();
+</script>

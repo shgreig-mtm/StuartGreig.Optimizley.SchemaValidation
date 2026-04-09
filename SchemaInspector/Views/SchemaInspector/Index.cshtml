@@ -1,0 +1,539 @@
+@model SchemaInspector.Controllers.SchemaInspectorViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schema Inspector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #1e1e1e;
+            color: #e0e0e0;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 100%;
+            height: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #333;
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @@keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-indicator.error {
+            background: #f44336;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #444;
+            background: #2d2d2d;
+            color: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #3d3d3d;
+            border-color: #555;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background: #0078d4;
+            border-color: #0078d4;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #106ebe;
+            border-color: #106ebe;
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .code-container {
+            background: #252526;
+            border: 1px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .code-header {
+            background: #2d2d2d;
+            padding: 8px 12px;
+            border-bottom: 1px solid #333;
+            font-size: 12px;
+            color: #888;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-content {
+            padding: 16px;
+            overflow: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #d4d4d4;
+        }
+
+        .error-message {
+            background: #3d1f1f;
+            border: 1px solid #f44336;
+            border-radius: 4px;
+            padding: 16px;
+            color: #f48fb1;
+            margin-bottom: 16px;
+        }
+
+        .validation-panel {
+            background: #252526;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .validation-status {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .status-icon.valid {
+            background: #4caf50;
+            color: #fff;
+        }
+
+        .status-icon.invalid {
+            background: #f44336;
+            color: #fff;
+        }
+
+        .validation-messages {
+            margin-top: 12px;
+        }
+
+        .validation-section {
+            margin-bottom: 12px;
+        }
+
+        .validation-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .validation-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+
+        .validation-message {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .validation-message.error {
+            background: #3d1f1f;
+            color: #f48fb1;
+            border-left: 3px solid #f44336;
+        }
+
+        .validation-message.warning {
+            background: #3d3d1f;
+            color: #fff9c4;
+            border-left: 3px solid #ffc107;
+        }
+
+        .validation-message-icon {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .info-message {
+            background: #1f2d3d;
+            border: 1px solid #2196f3;
+            border-radius: 4px;
+            padding: 12px;
+            color: #90caf9;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .meta-info {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .meta-item {
+            display: flex;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: #aaa;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #323232;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            display: flex;
+            animation: slideIn 0.3s ease;
+        }
+
+        @@keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-success {
+            background: #4caf50;
+        }
+
+        /* JSON Syntax Highlighting */
+        .json-key { color: #9cdcfe; }
+        .json-string { color: #ce9178; }
+        .json-number { color: #b5cea8; }
+        .json-boolean { color: #569cd6; }
+        .json-null { color: #569cd6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span class="status-indicator @(Model.Error != null ? "error" : "")"></span>
+                Schema Inspector
+            </h1>
+            <div class="actions">
+                @if (Model.JsonLd != null)
+                {
+                    <button class="btn" id="copyBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy JSON-LD
+                    </button>
+                    @if (!string.IsNullOrEmpty(Model.ContentUrl))
+                    {
+                        <a href="#" class="btn btn-primary" id="testGoogleBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Test with Google
+                        </a>
+                    }
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Error))
+        {
+            <div class="error-message">
+                <strong>Error:</strong> @Model.Error
+            </div>
+        }
+        else if (Model.JsonLd != null)
+        {
+            @if (!string.IsNullOrEmpty(Model.ContentName))
+            {
+                <div class="meta-info">
+                    <div class="meta-item">
+                        <span class="meta-label">Content:</span>
+                        <span>@Model.ContentName</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.ContentUrl))
+                    {
+                        <div class="meta-item">
+                            <span class="meta-label">URL:</span>
+                            <span>@Model.ContentUrl</span>
+                        </div>
+                    }
+                </div>
+            }
+
+            @* Validation Panel *@
+            @if (Model.ValidationResult != null)
+            {
+                <div class="validation-panel">
+                    <div class="validation-status">
+                        <div class="status-item">
+                            <div class="status-icon @(Model.ValidationResult.IsValidJson ? "valid" : "invalid")">
+                                @(Model.ValidationResult.IsValidJson ? "✓" : "✕")
+                            </div>
+                            <span>JSON Syntax @(Model.ValidationResult.IsValidJson ? "Valid" : "Invalid")</span>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-icon @(Model.ValidationResult.IsValidSchema ? "valid" : "invalid")">
+                                @(Model.ValidationResult.IsValidSchema ? "✓" : "✕")
+                            </div>
+                            <span>Schema.org @(Model.ValidationResult.IsValidSchema ? "Valid" : "Invalid")</span>
+                        </div>
+                    </div>
+
+                    @if (Model.ValidationResult.Errors.Any() || Model.ValidationResult.Warnings.Any())
+                    {
+                        <div class="validation-messages">
+                            @if (Model.ValidationResult.Errors.Any())
+                            {
+                                <div class="validation-section">
+                                    <div class="validation-section-title">Errors (@Model.ValidationResult.Errors.Count)</div>
+                                    @foreach (var error in Model.ValidationResult.Errors)
+                                    {
+                                        <div class="validation-message error">
+                                            <span class="validation-message-icon">⚠</span>
+                                            <span>@error</span>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            @if (Model.ValidationResult.Warnings.Any())
+                            {
+                                <div class="validation-section">
+                                    <div class="validation-section-title">Warnings (@Model.ValidationResult.Warnings.Count)</div>
+                                    @foreach (var warning in Model.ValidationResult.Warnings)
+                                    {
+                                        <div class="validation-message warning">
+                                            <span class="validation-message-icon">ℹ</span>
+                                            <span>@warning</span>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="code-container">
+                <div class="code-header">
+                    <span>JSON-LD Structured Data</span>
+                    <span>@(Model.JsonLd.Length) characters</span>
+                </div>
+                <div class="code-content">
+                    <pre id="jsonLdCode">@Model.JsonLd</pre>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="info-message">
+                No schema data available for this content.
+            </div>
+        }
+    </div>
+
+    <div class="toast" id="toast">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span id="toastMessage">Copied to clipboard!</span>
+    </div>
+
+    <script>
+        (function() {
+            // Copy to clipboard functionality
+            const copyBtn = document.getElementById('copyBtn');
+            const jsonLdCode = document.getElementById('jsonLdCode');
+            const toast = document.getElementById('toast');
+
+            if (copyBtn && jsonLdCode) {
+                copyBtn.addEventListener('click', async function() {
+                    try {
+                        await navigator.clipboard.writeText(jsonLdCode.textContent);
+                        showToast('Copied to clipboard!');
+                    } catch (err) {
+                        console.error('Failed to copy:', err);
+                        showToast('Failed to copy', false);
+                    }
+                });
+            }
+
+            // Google Rich Results Test
+            const testGoogleBtn = document.getElementById('testGoogleBtn');
+            if (testGoogleBtn) {
+                testGoogleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const contentUrl = '@Model.ContentUrl';
+                    if (contentUrl) {
+                        // Construct full URL (you may need to adjust this based on your site URL)
+                        const fullUrl = window.location.origin + contentUrl;
+                        const googleTestUrl = `https://search.google.com/test/rich-results?url=${encodeURIComponent(fullUrl)}`;
+                        window.open(googleTestUrl, '_blank');
+                    }
+                });
+            }
+
+            // Toast notification
+            function showToast(message, success = true) {
+                const toastMessage = document.getElementById('toastMessage');
+                toastMessage.textContent = message;
+                toast.className = 'toast show' + (success ? ' toast-success' : '');
+                
+                setTimeout(function() {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+
+            // Listen for CMS content save events to auto-refresh
+            window.addEventListener('message', function(event) {
+                // Check if it's a CMS message
+                if (event.data && event.data.type === 'epi-content-saved') {
+                    console.log('Content saved, refreshing schema inspector...');
+                    // Reload the page to show updated schema
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 500);
+                }
+            }, false);
+
+            // Simple JSON syntax highlighting
+            if (jsonLdCode) {
+                try {
+                    const json = JSON.parse(jsonLdCode.textContent);
+                    const formatted = JSON.stringify(json, null, 2);
+                    jsonLdCode.innerHTML = syntaxHighlight(formatted);
+                } catch (e) {
+                    // If parsing fails, just show the original
+                    console.warn('Could not parse JSON for highlighting:', e);
+                }
+            }
+
+            function syntaxHighlight(json) {
+                json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                    let cls = 'json-number';
+                    if (/^"/.test(match)) {
+                        if (/:$/.test(match)) {
+                            cls = 'json-key';
+                        } else {
+                            cls = 'json-string';
+                        }
+                    } else if (/true|false/.test(match)) {
+                        cls = 'json-boolean';
+                    } else if (/null/.test(match)) {
+                        cls = 'json-null';
+                    }
+                    return '<span class="' + cls + '">' + match + '</span>';
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
